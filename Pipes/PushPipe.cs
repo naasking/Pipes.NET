@@ -54,9 +54,5 @@ namespace Pipes
             var push = Cast(pipe);
             return new PushPipe<T>(this, k => push(i => { if (clause(i)) k(i); }));
         }
-        public void Execute<T>(IPipe<T> pipe, Action<T> accept)
-        {
-            Cast(pipe)(accept);
-        }
     }
 }
