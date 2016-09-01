@@ -35,25 +35,22 @@ namespace Pipes
     /// </summary>
     public static class Pipe
     {
-        //sealed class PushObserver<T> : IObserver<T>
-        //{
-        //    Action<T> k;
-        //    public void OnNext(T value)
-        //    {
-        //        k(value);
-        //    }
-        //    public void OnError(Exception e)
-        //    {
-        //    }
-        //    public void OnCompleted() { }
-        //}
+        public static IPipe<T> PushEvent<T>(Action<EventHandler<T>> register)
+        {
+            return new PushPipe<T>(new PushProvider(), k =>
+            {
+                register((o, e) => k(e));
+            });
+        }
 
-        //public static IPipe<T> AsPipe<T>(this IObservable<T> source)
-        //{
-        //    var sink = new PushObserver<T>();
-        //    var handle = source.Subscribe(sink);
-        //    return new PushPipe<T>(new PushProvider(), k => i => k(source.OnNext(i)));
-        //}
+        public static IPipe<T> EvalPushEvent<T>(Action<EventHandler<T>> register)
+        {
+            return new EvalPushPipe<T>(new EvalPushProvider(), k =>
+            {
+                register((o, e) => k(e));
+                return () => { };
+            });
+        }
 
         public static IPipe<T> AsPipe<T>(this IEnumerable<T> source)
         {
