@@ -12,7 +12,7 @@ namespace Pipes
     class PullPipe<T> : IPipe<T>
     {
         internal Func<T> func;
-        public PullPipe(IPipeProvider provider, Func<T> k)
+        public PullPipe(PullProvider provider, Func<T> k)
         {
             func = k;
             Provider = provider;

@@ -12,7 +12,7 @@ namespace Pipes
     class PushPipe<T> : IPipe<T>
     {
         internal Action<Action<T>> cont;
-        public PushPipe(IPipeProvider provider, Action<Action<T>> k)
+        public PushPipe(PushProvider provider, Action<Action<T>> k)
         {
             cont = k;
             Provider = provider;

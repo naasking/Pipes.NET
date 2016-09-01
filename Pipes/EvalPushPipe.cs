@@ -16,7 +16,7 @@ namespace Pipes
     class EvalPushPipe<T> : IPipe<T>
     {
         internal Func<Action<T>, Action> build;
-        public EvalPushPipe(IPipeProvider provider, Func<Action<T>, Action> k)
+        public EvalPushPipe(EvalPushProvider provider, Func<Action<T>, Action> k)
         {
             build = k;
             Provider = provider;

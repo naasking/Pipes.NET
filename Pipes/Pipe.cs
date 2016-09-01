@@ -35,20 +35,57 @@ namespace Pipes
     /// </summary>
     public static class Pipe
     {
-        public static IPipe<T> PushEvent<T>(Action<EventHandler<T>> register)
+        public static IPipe<T> PushEvent<T>(Action<EventHandler<T>> subscribe)
+            where T : EventArgs
         {
             return new PushPipe<T>(new PushProvider(), k =>
             {
-                register((o, e) => k(e));
+                subscribe((o, e) => k(e));
             });
         }
 
-        public static IPipe<T> EvalPushEvent<T>(Action<EventHandler<T>> register)
+        public static IPipe<T> EvalPushEvent<T>(Action<EventHandler<T>> subscribe)
+            where T : EventArgs
         {
             return new EvalPushPipe<T>(new EvalPushProvider(), k =>
             {
-                register((o, e) => k(e));
-                return () => { };
+                return () => subscribe((o, e) => k(e));
+            });
+        }
+
+        sealed class PushObserver<T> : IObserver<T>
+        {
+            internal Action<T> k;
+            public void OnNext(T value)
+            {
+                k(value);
+            }
+            public void OnError(Exception e)
+            {
+            }
+            public void OnCompleted()
+            {
+                k = null;
+            }
+        }
+
+        public static IPipe<T> AsPushPipe<T>(this IObservable<T> source)
+        {
+            var push = new PushObserver<T>();
+            var handle = source.Subscribe(push);
+            return new PushPipe<T>(new PushProvider(), k =>
+            {
+                lock (push) push.k += k;    // enqueue a new observer
+            });
+        }
+
+        public static IPipe<T> AsEvalPushPipe<T>(this IObservable<T> source)
+        {
+            var push = new PushObserver<T>();
+            var handle = source.Subscribe(push);
+            return new EvalPushPipe<T>(new EvalPushProvider(), k => () =>
+            {
+                lock (push) push.k += k;    // enqueue a new observer
             });
         }
 
