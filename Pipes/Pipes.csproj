@@ -42,7 +42,6 @@
     <Compile Include="Pipe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PullPipe.cs" />
-    <Compile Include="EvalPushPipe.cs" />
     <Compile Include="PushPipe.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -18,9 +18,9 @@ namespace Pipes
             Provider = provider;
         }
         public IPipeProvider Provider { get; private set; }
-        public Action Compile(Action<T> accept)
+        public void Execute(Action<T> accept)
         {
-            return () => cont(accept);
+            cont(accept);
         }
     }
 

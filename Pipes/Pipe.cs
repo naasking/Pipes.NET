@@ -27,7 +27,7 @@ namespace Pipes
     public interface IPipe<T>
     {
         IPipeProvider Provider { get; }
-        Action Compile(Action<T> accept);
+        void Execute(Action<T> accept);
     }
 
     /// <summary>
@@ -43,16 +43,7 @@ namespace Pipes
                 subscribe((o, e) => k(e));
             });
         }
-
-        public static IPipe<T> EvalPushEvent<T>(Action<EventHandler<T>> subscribe)
-            where T : EventArgs
-        {
-            return new EvalPushPipe<T>(new EvalPushProvider(), k =>
-            {
-                return () => subscribe((o, e) => k(e));
-            });
-        }
-
+        
         sealed class PushObserver<T> : IObserver<T>
         {
             internal Action<T> k;
@@ -74,16 +65,6 @@ namespace Pipes
             var push = new PushObserver<T>();
             var handle = source.Subscribe(push);
             return new PushPipe<T>(new PushProvider(), k =>
-            {
-                lock (push) push.k += k;    // enqueue a new observer
-            });
-        }
-
-        public static IPipe<T> AsEvalPushPipe<T>(this IObservable<T> source)
-        {
-            var push = new PushObserver<T>();
-            var handle = source.Subscribe(push);
-            return new EvalPushPipe<T>(new EvalPushProvider(), k => () =>
             {
                 lock (push) push.k += k;    // enqueue a new observer
             });
