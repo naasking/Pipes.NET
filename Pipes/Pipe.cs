@@ -26,7 +26,10 @@ namespace Pipes
     /// <typeparam name="T"></typeparam>
     public interface IPipe<T>
     {
-        IPipeProvider Provider { get; }
+        IPipe<R> Select<R>(Func<T, R> f);
+        IPipe<R> SelectMany<R>(Func<T, IPipe<R>> f);
+        IPipe<S> SelectMany<R, S>(Func<T, IPipe<R>> f, Func<T, R, S> g);
+        IPipe<T> Where(Func<T, bool> clause);
         void Execute(Action<T> accept);
     }
 
@@ -38,7 +41,7 @@ namespace Pipes
         public static IPipe<T> PushEvent<T>(Action<EventHandler<T>> subscribe)
             where T : EventArgs
         {
-            return new PushPipe<T>(new PushProvider(), k =>
+            return new PushPipe<T>(k =>
             {
                 subscribe((o, e) => k(e));
             });
@@ -64,7 +67,7 @@ namespace Pipes
         {
             var push = new PushObserver<T>();
             var handle = source.Subscribe(push);
-            return new PushPipe<T>(new PushProvider(), k =>
+            return new PushPipe<T>(k =>
             {
                 lock (push) push.k += k;    // enqueue a new observer
             });
@@ -73,7 +76,7 @@ namespace Pipes
         public static IPipe<T> AsPipe<T>(this IEnumerable<T> source)
         {
             var ie = source.GetEnumerator();
-            return new PullPipe<T>(new PullProvider(), () =>
+            return new PullPipe<T>(() =>
             {
                 while (ie.MoveNext()) return ie.Current;
                 ie.Dispose();
@@ -81,21 +84,21 @@ namespace Pipes
             });
         }
 
-        public static IPipe<R> Select<T, R>(IPipe<T> pipe, Func<T, R> f)
-        {
-            return pipe.Provider.Select(pipe, f);
-        }
-        public static IPipe<R> SelectMany<T, R>(IPipe<T> pipe, Func<T, IPipe<R>> f)
-        {
-            return pipe.Provider.SelectMany(pipe, f);
-        }
-        public static IPipe<T> Where<T>(IPipe<T> pipe, Func<T, bool> clause)
-        {
-            return pipe.Provider.Where(pipe, clause);
-        }
-        public static IPipe<S> SelectMany<T, R, S>(IPipe<T> pipe, Func<T, IPipe<R>> f, Func<T, R, S> g)
-        {
-            return pipe.Provider.SelectMany(pipe, f, g);
-        }
+        //public static IPipe<R> Select<T, R>(IPipe<T> pipe, Func<T, R> f)
+        //{
+        //    return pipe.Provider.Select(pipe, f);
+        //}
+        //public static IPipe<R> SelectMany<T, R>(IPipe<T> pipe, Func<T, IPipe<R>> f)
+        //{
+        //    return pipe.Provider.SelectMany(pipe, f);
+        //}
+        //public static IPipe<T> Where<T>(IPipe<T> pipe, Func<T, bool> clause)
+        //{
+        //    return pipe.Provider.Where(pipe, clause);
+        //}
+        //public static IPipe<S> SelectMany<T, R, S>(IPipe<T> pipe, Func<T, IPipe<R>> f, Func<T, R, S> g)
+        //{
+        //    return pipe.Provider.SelectMany(pipe, f, g);
+        //}
     }
 }
